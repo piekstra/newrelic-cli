@@ -24,7 +24,7 @@ jobs:
           version: v2.0.2
 
   test:
-    name: Test
+    name: Build and Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
