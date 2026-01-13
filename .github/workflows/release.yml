@@ -9,8 +9,8 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    runs-on: macos-latest
+  goreleaser:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,42 +20,13 @@ jobs:
         with:
           go-version: "1.21"
 
-      - name: Build macOS ARM64
-        run: |
-          GOOS=darwin GOARCH=arm64 go build -ldflags "-X github.com/piekstra/newrelic-cli/cmd.version=${{ github.ref_name }}" -o newrelic-cli .
-          tar -czvf newrelic-cli_${{ github.ref_name }}_darwin_arm64.tar.gz newrelic-cli
-          rm newrelic-cli
-
-      - name: Build macOS AMD64
-        run: |
-          GOOS=darwin GOARCH=amd64 go build -ldflags "-X github.com/piekstra/newrelic-cli/cmd.version=${{ github.ref_name }}" -o newrelic-cli .
-          tar -czvf newrelic-cli_${{ github.ref_name }}_darwin_amd64.tar.gz newrelic-cli
-          rm newrelic-cli
-
-      - name: Build Linux ARM64
-        run: |
-          GOOS=linux GOARCH=arm64 go build -ldflags "-X github.com/piekstra/newrelic-cli/cmd.version=${{ github.ref_name }}" -o newrelic-cli .
-          tar -czvf newrelic-cli_${{ github.ref_name }}_linux_arm64.tar.gz newrelic-cli
-          rm newrelic-cli
-
-      - name: Build Linux AMD64
-        run: |
-          GOOS=linux GOARCH=amd64 go build -ldflags "-X github.com/piekstra/newrelic-cli/cmd.version=${{ github.ref_name }}" -o newrelic-cli .
-          tar -czvf newrelic-cli_${{ github.ref_name }}_linux_amd64.tar.gz newrelic-cli
-          rm newrelic-cli
-
-      - name: Generate checksums
-        run: |
-          shasum -a 256 *.tar.gz > checksums.txt
-          cat checksums.txt
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
         with:
-          files: |
-            *.tar.gz
-            checksums.txt
-          generate_release_notes: true
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update Homebrew Tap
         env:
@@ -64,8 +35,8 @@ jobs:
           VERSION="${{ github.ref_name }}"
           VERSION_NUM="${VERSION#v}"
 
-          DARWIN_ARM64_SHA=$(shasum -a 256 newrelic-cli_${{ github.ref_name }}_darwin_arm64.tar.gz | cut -d' ' -f1)
-          DARWIN_AMD64_SHA=$(shasum -a 256 newrelic-cli_${{ github.ref_name }}_darwin_amd64.tar.gz | cut -d' ' -f1)
+          DARWIN_ARM64_SHA=$(grep "_darwin_arm64.tar.gz" dist/checksums.txt | cut -d' ' -f1)
+          DARWIN_AMD64_SHA=$(grep "_darwin_amd64.tar.gz" dist/checksums.txt | cut -d' ' -f1)
 
           git clone https://x-access-token:${TAP_GITHUB_TOKEN}@github.com/piekstra/homebrew-tap.git
           cd homebrew-tap
@@ -113,9 +84,9 @@ jobs:
           end
           FORMULAEOF
 
-          sed -i '' "s/VERSION_PLACEHOLDER/${VERSION_NUM}/g" Formula/newrelic-cli.rb
-          sed -i '' "s/DARWIN_ARM64_PLACEHOLDER/${DARWIN_ARM64_SHA}/g" Formula/newrelic-cli.rb
-          sed -i '' "s/DARWIN_AMD64_PLACEHOLDER/${DARWIN_AMD64_SHA}/g" Formula/newrelic-cli.rb
+          sed -i "s/VERSION_PLACEHOLDER/${VERSION_NUM}/g" Formula/newrelic-cli.rb
+          sed -i "s/DARWIN_ARM64_PLACEHOLDER/${DARWIN_ARM64_SHA}/g" Formula/newrelic-cli.rb
+          sed -i "s/DARWIN_AMD64_PLACEHOLDER/${DARWIN_AMD64_SHA}/g" Formula/newrelic-cli.rb
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
