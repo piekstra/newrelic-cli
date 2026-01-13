@@ -1,0 +1,9 @@
+{
+  "deployment": {
+    "id": 9002,
+    "revision": "v1.2.4",
+    "description": "New deployment",
+    "user": "test-user",
+    "timestamp": "2024-01-16T09:00:00Z"
+  }
+}

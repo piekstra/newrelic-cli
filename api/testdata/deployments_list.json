@@ -1,0 +1,18 @@
+{
+  "deployments": [
+    {
+      "id": 9001,
+      "revision": "v1.2.3",
+      "description": "Feature release: new dashboard",
+      "user": "deploy-bot",
+      "timestamp": "2024-01-15T14:30:00Z"
+    },
+    {
+      "id": 9000,
+      "revision": "v1.2.2",
+      "description": "Bug fix: memory leak",
+      "user": "alice",
+      "timestamp": "2024-01-14T10:00:00Z"
+    }
+  ]
+}

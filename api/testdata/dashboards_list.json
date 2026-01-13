@@ -1,0 +1,29 @@
+{
+  "data": {
+    "actor": {
+      "entitySearch": {
+        "results": {
+          "entities": [
+            {
+              "guid": "MXxWSVp8REFTSEJPQVJEfDEyMzQ1",
+              "name": "Production Overview",
+              "accountId": 12345,
+              "tags": [
+                {"key": "team", "values": ["platform"]},
+                {"key": "environment", "values": ["production"]}
+              ]
+            },
+            {
+              "guid": "MXxWSVp8REFTSEJPQVJEfDY3ODkw",
+              "name": "API Performance",
+              "accountId": 12345,
+              "tags": [
+                {"key": "team", "values": ["api"]}
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

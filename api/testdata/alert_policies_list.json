@@ -1,0 +1,19 @@
+{
+  "policies": [
+    {
+      "id": 111,
+      "name": "Production Alerts",
+      "incident_preference": "PER_POLICY"
+    },
+    {
+      "id": 222,
+      "name": "Staging Alerts",
+      "incident_preference": "PER_CONDITION"
+    },
+    {
+      "id": 333,
+      "name": "Critical Only",
+      "incident_preference": "PER_CONDITION_AND_TARGET"
+    }
+  ]
+}

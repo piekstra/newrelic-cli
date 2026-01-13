@@ -1,0 +1,10 @@
+{
+  "data": null,
+  "errors": [
+    {
+      "message": "Field 'unknownField' doesn't exist on type 'Actor'",
+      "locations": [{"line": 3, "column": 5}],
+      "path": ["actor", "unknownField"]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "data": {
+    "actor": {
+      "account": {
+        "nrql": {
+          "results": [
+            {
+              "count": 1500,
+              "facet": "WebTransaction/Controller/api/v1/users"
+            },
+            {
+              "count": 850,
+              "facet": "WebTransaction/Controller/api/v1/orders"
+            },
+            {
+              "count": 320,
+              "facet": "WebTransaction/Controller/api/v1/products"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

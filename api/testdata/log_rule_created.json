@@ -1,0 +1,15 @@
+{
+  "data": {
+    "logConfigurationsCreateParsingRule": {
+      "rule": {
+        "id": "rule-new",
+        "description": "Newly created rule",
+        "enabled": true,
+        "grok": "%{IP:client_ip}",
+        "lucene": "host:webserver",
+        "nrql": "SELECT * FROM Log",
+        "updatedAt": "2024-01-16T10:00:00Z"
+      }
+    }
+  }
+}

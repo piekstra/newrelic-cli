@@ -1,0 +1,8 @@
+{
+  "id": "syn-001",
+  "name": "Homepage Check",
+  "type": "SIMPLE",
+  "frequency": 5,
+  "status": "ENABLED",
+  "uri": "https://example.com"
+}
