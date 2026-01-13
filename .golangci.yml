@@ -1,0 +1,19 @@
+version: "2"
+
+run:
+  go: "1.21"
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck      # Unchecked errors
+    - govet         # Go vet checks
+    - staticcheck   # Static analysis
+    - unused        # Unused code
+    - misspell      # Spelling mistakes
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+  misspell:
+    locale: US

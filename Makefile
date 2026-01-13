@@ -1,4 +1,4 @@
-.PHONY: build clean test test-cover lint install release snapshot run fmt verify deps
+.PHONY: build clean test test-cover test-short lint install release snapshot run fmt verify deps
 
 BINARY_NAME=newrelic-cli
 VERSION?=dev
@@ -15,6 +15,7 @@ build:
 clean:
 	rm -f $(BINARY_NAME)
 	rm -rf dist/
+	rm -f coverage.out coverage.html
 
 test:
 	go test -race ./...

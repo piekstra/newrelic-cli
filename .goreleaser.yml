@@ -1,0 +1,52 @@
+version: 2
+
+project_name: newrelic-cli
+
+builds:
+  - main: ./cmd/newrelic-cli
+    binary: newrelic-cli
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X github.com/piekstra/newrelic-cli/internal/version.Version={{.Version}}
+      - -X github.com/piekstra/newrelic-cli/internal/version.Commit={{.Commit}}
+      - -X github.com/piekstra/newrelic-cli/internal/version.BuildDate={{.Date}}
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+  algorithm: sha256
+
+changelog:
+  use: github
+  sort: asc
+  groups:
+    - title: Features
+      regexp: "^.*feat.*:.*$"
+      order: 0
+    - title: Bug Fixes
+      regexp: "^.*fix.*:.*$"
+      order: 1
+    - title: Other
+      order: 999
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
+
+release:
+  github:
+    owner: piekstra
+    name: newrelic-cli
