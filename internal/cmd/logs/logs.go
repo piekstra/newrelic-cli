@@ -7,6 +7,7 @@ import (
 
 	"github.com/piekstra/newrelic-cli/api"
 	"github.com/piekstra/newrelic-cli/internal/cmd/root"
+	"github.com/piekstra/newrelic-cli/internal/confirm"
 	"github.com/piekstra/newrelic-cli/internal/view"
 )
 
@@ -134,18 +135,43 @@ func runCreateRule(opts *createRuleOptions) error {
 	}
 }
 
+// deleteRuleOptions holds options for the delete rule command
+type deleteRuleOptions struct {
+	*root.Options
+	force bool
+}
+
 func newDeleteRuleCmd(opts *root.Options) *cobra.Command {
-	return &cobra.Command{
+	deleteOpts := &deleteRuleOptions{Options: opts}
+
+	cmd := &cobra.Command{
 		Use:   "delete <rule-id>",
 		Short: "Delete a log parsing rule",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDeleteRule(opts, args[0])
+			return runDeleteRule(deleteOpts, args[0])
 		},
 	}
+
+	cmd.Flags().BoolVarP(&deleteOpts.force, "force", "f", false, "Skip confirmation prompt")
+
+	return cmd
 }
 
-func runDeleteRule(opts *root.Options, ruleID string) error {
+func runDeleteRule(opts *deleteRuleOptions, ruleID string) error {
+	v := opts.View()
+
+	if !opts.force {
+		p := &confirm.Prompter{
+			In:  opts.Stdin,
+			Out: opts.Stderr,
+		}
+		if !p.Confirm(fmt.Sprintf("Delete log parsing rule %s?", ruleID)) {
+			v.Warning("Operation canceled")
+			return nil
+		}
+	}
+
 	client, err := api.New()
 	if err != nil {
 		return err
@@ -155,7 +181,6 @@ func runDeleteRule(opts *root.Options, ruleID string) error {
 		return err
 	}
 
-	v := opts.View()
 	v.Success("Log parsing rule %s deleted", ruleID)
 	return nil
 }

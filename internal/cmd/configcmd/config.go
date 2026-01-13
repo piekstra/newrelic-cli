@@ -9,6 +9,9 @@ import (
 
 	"github.com/piekstra/newrelic-cli/internal/cmd/root"
 	"github.com/piekstra/newrelic-cli/internal/config"
+	"github.com/piekstra/newrelic-cli/internal/confirm"
+	"github.com/piekstra/newrelic-cli/internal/validate"
+	"github.com/piekstra/newrelic-cli/internal/view"
 )
 
 // Register adds the config commands to the root command
@@ -24,6 +27,7 @@ func Register(rootCmd *cobra.Command, opts *root.Options) {
 	configCmd.AddCommand(newDeleteAccountIDCmd(opts))
 	configCmd.AddCommand(newSetRegionCmd(opts))
 	configCmd.AddCommand(newShowCmd(opts))
+	configCmd.AddCommand(newFixPermissionsCmd(opts))
 
 	rootCmd.AddCommand(configCmd)
 }
@@ -68,12 +72,13 @@ func runSetAPIKey(opts *root.Options, args []string) error {
 		apiKey = strings.TrimSpace(input)
 	}
 
-	if apiKey == "" {
-		return fmt.Errorf("API key cannot be empty")
+	// Validate API key
+	warning, err := validate.APIKey(apiKey)
+	if err != nil {
+		return err
 	}
-
-	if !strings.HasPrefix(apiKey, "NRAK-") {
-		v.Warning("Warning: New Relic User API keys typically start with 'NRAK-'")
+	if warning != "" {
+		v.Warning("Warning: " + warning)
 	}
 
 	if err := config.SetAPIKey(apiKey); err != nil {
@@ -88,18 +93,41 @@ func runSetAPIKey(opts *root.Options, args []string) error {
 	return nil
 }
 
+// deleteAPIKeyOptions holds options for the delete-api-key command
+type deleteAPIKeyOptions struct {
+	*root.Options
+	force bool
+}
+
 func newDeleteAPIKeyCmd(opts *root.Options) *cobra.Command {
-	return &cobra.Command{
+	deleteOpts := &deleteAPIKeyOptions{Options: opts}
+
+	cmd := &cobra.Command{
 		Use:   "delete-api-key",
 		Short: "Delete the stored New Relic API key",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDeleteAPIKey(opts)
+			return runDeleteAPIKey(deleteOpts)
 		},
 	}
+
+	cmd.Flags().BoolVarP(&deleteOpts.force, "force", "f", false, "Skip confirmation prompt")
+
+	return cmd
 }
 
-func runDeleteAPIKey(opts *root.Options) error {
+func runDeleteAPIKey(opts *deleteAPIKeyOptions) error {
 	v := opts.View()
+
+	if !opts.force {
+		p := &confirm.Prompter{
+			In:  opts.Stdin,
+			Out: opts.Stderr,
+		}
+		if !p.Confirm("Delete stored API key?") {
+			v.Warning("Operation canceled")
+			return nil
+		}
+	}
 
 	if err := config.DeleteAPIKey(); err != nil {
 		return fmt.Errorf("failed to delete API key: %w", err)
@@ -127,6 +155,11 @@ func newSetAccountIDCmd(opts *root.Options) *cobra.Command {
 func runSetAccountID(opts *root.Options, accountID string) error {
 	v := opts.View()
 
+	// Validate account ID
+	if err := validate.AccountID(accountID); err != nil {
+		return err
+	}
+
 	if err := config.SetAccountID(accountID); err != nil {
 		return fmt.Errorf("failed to store account ID: %w", err)
 	}
@@ -139,18 +172,41 @@ func runSetAccountID(opts *root.Options, accountID string) error {
 	return nil
 }
 
+// deleteAccountIDOptions holds options for the delete-account-id command
+type deleteAccountIDOptions struct {
+	*root.Options
+	force bool
+}
+
 func newDeleteAccountIDCmd(opts *root.Options) *cobra.Command {
-	return &cobra.Command{
+	deleteOpts := &deleteAccountIDOptions{Options: opts}
+
+	cmd := &cobra.Command{
 		Use:   "delete-account-id",
 		Short: "Delete the stored New Relic account ID",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runDeleteAccountID(opts)
+			return runDeleteAccountID(deleteOpts)
 		},
 	}
+
+	cmd.Flags().BoolVarP(&deleteOpts.force, "force", "f", false, "Skip confirmation prompt")
+
+	return cmd
 }
 
-func runDeleteAccountID(opts *root.Options) error {
+func runDeleteAccountID(opts *deleteAccountIDOptions) error {
 	v := opts.View()
+
+	if !opts.force {
+		p := &confirm.Prompter{
+			In:  opts.Stdin,
+			Out: opts.Stderr,
+		}
+		if !p.Confirm("Delete stored account ID?") {
+			v.Warning("Operation canceled")
+			return nil
+		}
+	}
 
 	if err := config.DeleteAccountID(); err != nil {
 		return fmt.Errorf("failed to delete account ID: %w", err)
@@ -179,8 +235,10 @@ func runSetRegion(opts *root.Options, region string) error {
 	v := opts.View()
 
 	region = strings.ToUpper(region)
-	if region != "US" && region != "EU" {
-		return fmt.Errorf("region must be US or EU")
+
+	// Validate region
+	if err := validate.Region(region); err != nil {
+		return err
 	}
 
 	if err := config.SetRegion(region); err != nil {
@@ -201,45 +259,100 @@ func newShowCmd(opts *root.Options) *cobra.Command {
 	}
 }
 
+// ConfigStatus represents configuration status for JSON output
+// NOTE: API key value is intentionally NOT included for security
+type ConfigStatus struct {
+	APIKeyConfigured bool   `json:"api_key_configured"`
+	APIKeySource     string `json:"api_key_source,omitempty"`
+	AccountID        string `json:"account_id,omitempty"`
+	AccountIDSource  string `json:"account_id_source,omitempty"`
+	Region           string `json:"region"`
+	RegionSource     string `json:"region_source"`
+	StorageType      string `json:"storage_type"`
+}
+
 func runShow(opts *root.Options) error {
 	v := opts.View()
 	status := config.GetCredentialStatus()
 
+	// Check for permission warnings (Linux only)
+	if warning := config.CheckPermissions(); warning != "" {
+		v.Warning(warning)
+		v.Println("Run 'newrelic-cli config fix-permissions' to correct this")
+		v.Println("")
+	}
+
+	// Build configuration status
+	configStatus := ConfigStatus{
+		Region:      config.GetRegion(),
+		StorageType: "config_file",
+	}
+
+	if config.IsSecureStorage() {
+		configStatus.StorageType = "keychain"
+	}
+
+	// API Key
+	var apiKeyMasked string
+	if apiKey, err := config.GetAPIKey(); err == nil {
+		configStatus.APIKeyConfigured = true
+		if status["api_key_env"] {
+			configStatus.APIKeySource = "environment"
+		} else {
+			configStatus.APIKeySource = "stored"
+		}
+		// Mask API key for display (first 8 + last 4)
+		if len(apiKey) > 12 {
+			apiKeyMasked = apiKey[:8] + strings.Repeat("*", len(apiKey)-12) + apiKey[len(apiKey)-4:]
+		} else {
+			apiKeyMasked = strings.Repeat("*", len(apiKey))
+		}
+	}
+
+	// Account ID
+	if accountID, err := config.GetAccountID(); err == nil {
+		configStatus.AccountID = accountID
+		if status["account_id_env"] {
+			configStatus.AccountIDSource = "environment"
+		} else {
+			configStatus.AccountIDSource = "stored"
+		}
+	}
+
+	// Region source
+	if status["region_stored"] {
+		configStatus.RegionSource = "stored"
+	} else if status["region_env"] {
+		configStatus.RegionSource = "environment"
+	} else {
+		configStatus.RegionSource = "default"
+	}
+
+	// JSON output - never include API key value
+	if v.Format == view.FormatJSON {
+		return v.JSON(configStatus)
+	}
+
+	// Table/Plain output
 	v.Println("Configuration Status:")
 	v.Println("")
 
 	// API Key
-	if apiKey, err := config.GetAPIKey(); err == nil {
-		masked := apiKey[:8] + strings.Repeat("*", len(apiKey)-12) + apiKey[len(apiKey)-4:]
-		source := "stored"
-		if status["api_key_env"] {
-			source = "environment"
-		}
-		v.Print("  API Key:    %s (%s)\n", masked, source)
+	if configStatus.APIKeyConfigured {
+		v.Print("  API Key:    %s (%s)\n", apiKeyMasked, configStatus.APIKeySource)
 	} else {
 		v.Println("  API Key:    Not configured")
 	}
 
 	// Account ID
-	if accountID, err := config.GetAccountID(); err == nil {
-		source := "stored"
-		if status["account_id_env"] {
-			source = "environment"
-		}
-		v.Print("  Account ID: %s (%s)\n", accountID, source)
+	if configStatus.AccountID != "" {
+		v.Print("  Account ID: %s (%s)\n", configStatus.AccountID, configStatus.AccountIDSource)
 	} else {
 		v.Println("  Account ID: Not configured")
 	}
 
 	// Region
-	region := config.GetRegion()
-	source := "default"
-	if status["region_stored"] {
-		source = "stored"
-	} else if status["region_env"] {
-		source = "environment"
-	}
-	v.Print("  Region:     %s (%s)\n", region, source)
+	v.Print("  Region:     %s (%s)\n", configStatus.Region, configStatus.RegionSource)
 
 	v.Println("")
 
@@ -250,5 +363,35 @@ func runShow(opts *root.Options) error {
 		v.Println("Storage: Config file (~/.config/newrelic-cli/credentials)")
 	}
 
+	return nil
+}
+
+func newFixPermissionsCmd(opts *root.Options) *cobra.Command {
+	return &cobra.Command{
+		Use:   "fix-permissions",
+		Short: "Fix config file permissions to 0600 (Linux only)",
+		Long: `Fix the permissions on the credentials file to ensure they are secure.
+
+On Linux, the credentials file should have permissions 0600 (owner read/write only).
+On macOS, this command has no effect as credentials are stored in the Keychain.`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runFixPermissions(opts)
+		},
+	}
+}
+
+func runFixPermissions(opts *root.Options) error {
+	v := opts.View()
+
+	if config.IsSecureStorage() {
+		v.Println("On macOS, credentials are stored in the Keychain - no file permissions to fix")
+		return nil
+	}
+
+	if err := config.FixPermissions(); err != nil {
+		return fmt.Errorf("failed to fix permissions: %w", err)
+	}
+
+	v.Success("Permissions fixed to 0600")
 	return nil
 }

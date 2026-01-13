@@ -122,6 +122,41 @@ func GetCredentialStatus() map[string]bool {
 	return status
 }
 
+// CheckPermissions verifies config file has secure permissions (Linux only)
+// Returns warning message if permissions are too open, empty string otherwise
+func CheckPermissions() string {
+	if runtime.GOOS == "darwin" {
+		return "" // macOS uses Keychain, no file to check
+	}
+
+	configPath := getConfigFilePath()
+	info, err := os.Stat(configPath)
+	if err != nil {
+		return "" // File doesn't exist, that's OK
+	}
+
+	mode := info.Mode().Perm()
+	if mode != 0600 {
+		return fmt.Sprintf("Warning: credentials file has permissions %04o, expected 0600", mode)
+	}
+
+	return ""
+}
+
+// FixPermissions corrects config file permissions to 0600 (Linux only)
+func FixPermissions() error {
+	if runtime.GOOS == "darwin" {
+		return nil // macOS uses Keychain, nothing to fix
+	}
+
+	configPath := getConfigFilePath()
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		return fmt.Errorf("credentials file does not exist")
+	}
+
+	return os.Chmod(configPath, 0600)
+}
+
 // --- Platform-specific implementations ---
 
 func getCredential(key string) (string, error) {
