@@ -12,5 +12,24 @@ linters:
     - unused        # Unused code
     - misspell      # Spelling mistakes
   settings:
+    errcheck:
+      exclude-functions:
+        - io.Closer.Close
+        - (*net/http.Response).Body.Close
+        - (net/http.ResponseWriter).Write
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - (*github.com/spf13/cobra.Command).MarkFlagRequired
+        - (*github.com/spf13/pflag.FlagSet).MarkDeprecated
+        - (*github.com/fatih/color.Color).Fprintln
     misspell:
       locale: US
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+      - linters:
+          - errcheck
+        source: "defer.*\\.Close\\(\\)"
