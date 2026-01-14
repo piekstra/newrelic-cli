@@ -143,6 +143,22 @@ func (c *Client) CreateLogParsingRule(description, grok, nrql string, enabled bo
 	}, nil
 }
 
+// GetLogParsingRule returns a specific log parsing rule by ID
+func (c *Client) GetLogParsingRule(ruleID string) (*LogParsingRule, error) {
+	rules, err := c.ListLogParsingRules()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, r := range rules {
+		if r.ID == ruleID {
+			return &r, nil
+		}
+	}
+
+	return nil, fmt.Errorf("rule not found: %s", ruleID)
+}
+
 // LogParsingRuleUpdate contains the fields that can be updated on a log parsing rule.
 // All fields are optional - only non-nil values will be included in the update.
 type LogParsingRuleUpdate struct {
@@ -153,10 +169,40 @@ type LogParsingRuleUpdate struct {
 	NRQL        *string
 }
 
-// UpdateLogParsingRule updates an existing log parsing rule
+// UpdateLogParsingRule updates an existing log parsing rule.
+// The NerdGraph API requires all fields to be provided, so this function
+// fetches the existing rule first and merges the updates.
 func (c *Client) UpdateLogParsingRule(ruleID string, update LogParsingRuleUpdate) (*LogParsingRule, error) {
 	if err := c.RequireAccountID(); err != nil {
 		return nil, err
+	}
+
+	// Fetch existing rule to get current values
+	existing, err := c.GetLogParsingRule(ruleID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Merge updates with existing values
+	description := existing.Description
+	if update.Description != nil {
+		description = *update.Description
+	}
+	enabled := existing.Enabled
+	if update.Enabled != nil {
+		enabled = *update.Enabled
+	}
+	grok := existing.Grok
+	if update.Grok != nil {
+		grok = *update.Grok
+	}
+	lucene := existing.Lucene
+	if update.Lucene != nil {
+		lucene = *update.Lucene
+	}
+	nrql := existing.NRQL
+	if update.NRQL != nil {
+		nrql = *update.NRQL
 	}
 
 	mutation := `
@@ -175,29 +221,17 @@ func (c *Client) UpdateLogParsingRule(ruleID string, update LogParsingRuleUpdate
 		}
 	}`
 
-	// Build the rule object with only the provided fields
-	ruleInput := make(map[string]interface{})
-	if update.Description != nil {
-		ruleInput["description"] = *update.Description
-	}
-	if update.Enabled != nil {
-		ruleInput["enabled"] = *update.Enabled
-	}
-	if update.Grok != nil {
-		ruleInput["grok"] = *update.Grok
-	}
-	if update.Lucene != nil {
-		ruleInput["lucene"] = *update.Lucene
-	}
-	if update.NRQL != nil {
-		ruleInput["nrql"] = *update.NRQL
-	}
-
 	accountID, _ := c.GetAccountIDInt()
 	variables := map[string]interface{}{
 		"accountId": accountID,
-		"rule":      ruleInput,
-		"id":        ruleID,
+		"rule": map[string]interface{}{
+			"description": description,
+			"enabled":     enabled,
+			"grok":        grok,
+			"lucene":      lucene,
+			"nrql":        nrql,
+		},
+		"id": ruleID,
 	}
 
 	result, err := c.NerdGraphQuery(mutation, variables)
