@@ -204,3 +204,97 @@ func TestDeleteLogParsingRule_NoAccountID(t *testing.T) {
 	require.Error(t, err)
 	assert.ErrorIs(t, err, ErrAccountIDRequired)
 }
+
+func TestUpdateLogParsingRule(t *testing.T) {
+	server := NewMockServer()
+	defer server.Close()
+
+	server.SetResponse(http.StatusOK, LoadTestFixture(t, "log_rule_updated.json"))
+
+	client := NewTestClient(server)
+	description := "Updated description"
+	enabled := false
+	rule, err := client.UpdateLogParsingRule("rule-001", LogParsingRuleUpdate{
+		Description: &description,
+		Enabled:     &enabled,
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, rule)
+
+	assert.Equal(t, "rule-001", rule.ID)
+	assert.Equal(t, "Updated description", rule.Description)
+	assert.False(t, rule.Enabled)
+
+	// Verify request
+	server.AssertLastPath(t, "/graphql")
+	server.AssertLastMethod(t, "POST")
+
+	// Verify rule ID was in the mutation
+	req := server.LastRequest()
+	require.NotNil(t, req)
+	assert.Contains(t, string(req.Body), "rule-001")
+}
+
+func TestUpdateLogParsingRule_PartialUpdate(t *testing.T) {
+	server := NewMockServer()
+	defer server.Close()
+
+	server.SetResponse(http.StatusOK, LoadTestFixture(t, "log_rule_updated.json"))
+
+	client := NewTestClient(server)
+	// Only update grok pattern
+	grok := "%{IP:client_ip} %{WORD:method}"
+	_, err := client.UpdateLogParsingRule("rule-001", LogParsingRuleUpdate{
+		Grok: &grok,
+	})
+
+	require.NoError(t, err)
+
+	// Verify only grok was in the request body
+	req := server.LastRequest()
+	require.NotNil(t, req)
+	assert.Contains(t, string(req.Body), "grok")
+}
+
+func TestUpdateLogParsingRule_Error(t *testing.T) {
+	server := NewMockServer()
+	defer server.Close()
+
+	response := `{
+		"data": {
+			"logConfigurationsUpdateParsingRule": {
+				"rule": null,
+				"errors": [
+					{"message": "Rule not found", "type": "NOT_FOUND"}
+				]
+			}
+		}
+	}`
+	server.SetResponse(http.StatusOK, response)
+
+	client := NewTestClient(server)
+	description := "Test"
+	_, err := client.UpdateLogParsingRule("nonexistent", LogParsingRuleUpdate{
+		Description: &description,
+	})
+
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "Rule not found")
+}
+
+func TestUpdateLogParsingRule_NoAccountID(t *testing.T) {
+	server := NewMockServer()
+	defer server.Close()
+
+	client := NewTestClient(server)
+	client.AccountID = ""
+
+	description := "Test"
+	_, err := client.UpdateLogParsingRule("rule-001", LogParsingRuleUpdate{
+		Description: &description,
+	})
+
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrAccountIDRequired)
+}

@@ -143,6 +143,93 @@ func (c *Client) CreateLogParsingRule(description, grok, nrql string, enabled bo
 	}, nil
 }
 
+// LogParsingRuleUpdate contains the fields that can be updated on a log parsing rule.
+// All fields are optional - only non-nil values will be included in the update.
+type LogParsingRuleUpdate struct {
+	Description *string
+	Enabled     *bool
+	Grok        *string
+	Lucene      *string
+	NRQL        *string
+}
+
+// UpdateLogParsingRule updates an existing log parsing rule
+func (c *Client) UpdateLogParsingRule(ruleID string, update LogParsingRuleUpdate) (*LogParsingRule, error) {
+	if err := c.RequireAccountID(); err != nil {
+		return nil, err
+	}
+
+	mutation := `
+	mutation($accountId: Int!, $rule: LogConfigurationsParsingRuleConfiguration!, $id: ID!) {
+		logConfigurationsUpdateParsingRule(accountId: $accountId, rule: $rule, id: $id) {
+			rule {
+				id
+				description
+				enabled
+				grok
+				lucene
+				nrql
+				updatedAt
+			}
+			errors { message type }
+		}
+	}`
+
+	// Build the rule object with only the provided fields
+	ruleInput := make(map[string]interface{})
+	if update.Description != nil {
+		ruleInput["description"] = *update.Description
+	}
+	if update.Enabled != nil {
+		ruleInput["enabled"] = *update.Enabled
+	}
+	if update.Grok != nil {
+		ruleInput["grok"] = *update.Grok
+	}
+	if update.Lucene != nil {
+		ruleInput["lucene"] = *update.Lucene
+	}
+	if update.NRQL != nil {
+		ruleInput["nrql"] = *update.NRQL
+	}
+
+	accountID, _ := c.GetAccountIDInt()
+	variables := map[string]interface{}{
+		"accountId": accountID,
+		"rule":      ruleInput,
+		"id":        ruleID,
+	}
+
+	result, err := c.NerdGraphQuery(mutation, variables)
+	if err != nil {
+		return nil, err
+	}
+
+	updateResult, ok := safeMap(result["logConfigurationsUpdateParsingRule"])
+	if !ok {
+		return nil, &ResponseError{Message: "unexpected response format"}
+	}
+	if errors, ok := safeSlice(updateResult["errors"]); ok && len(errors) > 0 {
+		errMap, _ := safeMap(errors[0])
+		return nil, fmt.Errorf("failed to update rule: %s", safeString(errMap["message"]))
+	}
+
+	rule, ok := safeMap(updateResult["rule"])
+	if !ok {
+		return nil, &ResponseError{Message: "unexpected response format: missing rule"}
+	}
+
+	return &LogParsingRule{
+		ID:          safeString(rule["id"]),
+		Description: safeString(rule["description"]),
+		Enabled:     rule["enabled"] == true,
+		Grok:        safeString(rule["grok"]),
+		Lucene:      safeString(rule["lucene"]),
+		NRQL:        safeString(rule["nrql"]),
+		UpdatedAt:   safeString(rule["updatedAt"]),
+	}, nil
+}
+
 // DeleteLogParsingRule deletes a log parsing rule
 func (c *Client) DeleteLogParsingRule(ruleID string) error {
 	if err := c.RequireAccountID(); err != nil {
