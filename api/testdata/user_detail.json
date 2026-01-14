@@ -1,0 +1,35 @@
+{
+  "data": {
+    "actor": {
+      "organization": {
+        "userManagement": {
+          "authenticationDomains": {
+            "authenticationDomains": [
+              {
+                "users": {
+                  "users": [
+                    {
+                      "id": "user-001",
+                      "name": "Alice Admin",
+                      "email": "alice@example.com",
+                      "type": {
+                        "id": "1"
+                      },
+                      "groups": {
+                        "groups": [
+                          {"displayName": "Admin"},
+                          {"displayName": "Engineering"},
+                          {"displayName": "On-Call"}
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

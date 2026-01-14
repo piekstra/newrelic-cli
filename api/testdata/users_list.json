@@ -1,0 +1,49 @@
+{
+  "data": {
+    "actor": {
+      "organization": {
+        "userManagement": {
+          "authenticationDomains": {
+            "authenticationDomains": [
+              {
+                "id": "domain-1",
+                "name": "Default",
+                "users": {
+                  "users": [
+                    {
+                      "id": "user-001",
+                      "name": "Alice Admin",
+                      "email": "alice@example.com",
+                      "type": {
+                        "id": "1"
+                      },
+                      "groups": {
+                        "groups": [
+                          {"displayName": "Admin"},
+                          {"displayName": "Engineering"}
+                        ]
+                      }
+                    },
+                    {
+                      "id": "user-002",
+                      "name": "Bob Developer",
+                      "email": "bob@example.com",
+                      "type": {
+                        "id": "2"
+                      },
+                      "groups": {
+                        "groups": [
+                          {"displayName": "Engineering"}
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

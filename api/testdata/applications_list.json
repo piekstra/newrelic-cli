@@ -1,0 +1,28 @@
+{
+  "applications": [
+    {
+      "id": 12345678,
+      "name": "My Application",
+      "language": "java",
+      "health_status": "green",
+      "reporting": true,
+      "last_reported_at": "2024-01-15T10:30:00Z"
+    },
+    {
+      "id": 87654321,
+      "name": "Another App",
+      "language": "python",
+      "health_status": "yellow",
+      "reporting": true,
+      "last_reported_at": "2024-01-15T10:25:00Z"
+    },
+    {
+      "id": 11111111,
+      "name": "Inactive App",
+      "language": "ruby",
+      "health_status": "gray",
+      "reporting": false,
+      "last_reported_at": "2024-01-10T08:00:00Z"
+    }
+  ]
+}

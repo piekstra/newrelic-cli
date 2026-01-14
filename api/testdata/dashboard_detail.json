@@ -1,0 +1,44 @@
+{
+  "data": {
+    "actor": {
+      "entity": {
+        "guid": "MXxWSVp8REFTSEJPQVJEfDEyMzQ1",
+        "name": "Production Overview",
+        "description": "Main production metrics dashboard",
+        "permissions": "PUBLIC_READ_WRITE",
+        "pages": [
+          {
+            "guid": "page-001",
+            "name": "Overview",
+            "widgets": [
+              {
+                "id": "widget-1",
+                "title": "Error Rate",
+                "visualization": {"id": "viz.line"},
+                "rawConfiguration": {"nrqlQueries": [{"query": "SELECT count(*) FROM Transaction"}]}
+              },
+              {
+                "id": "widget-2",
+                "title": "Throughput",
+                "visualization": {"id": "viz.billboard"},
+                "rawConfiguration": {"nrqlQueries": [{"query": "SELECT rate(count(*), 1 minute) FROM Transaction"}]}
+              }
+            ]
+          },
+          {
+            "guid": "page-002",
+            "name": "Details",
+            "widgets": [
+              {
+                "id": "widget-3",
+                "title": "Response Time Distribution",
+                "visualization": {"id": "viz.histogram"},
+                "rawConfiguration": {}
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

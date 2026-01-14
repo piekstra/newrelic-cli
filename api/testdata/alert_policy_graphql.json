@@ -1,0 +1,29 @@
+{
+  "data": {
+    "actor": {
+      "account": {
+        "alerts": {
+          "policy": {
+            "id": "111",
+            "name": "Production Alerts",
+            "incidentPreference": "PER_POLICY",
+            "conditions": [
+              {
+                "id": "1001",
+                "name": "High Error Rate",
+                "enabled": true,
+                "type": "apm_app_metric"
+              },
+              {
+                "id": "1002",
+                "name": "Slow Response Time",
+                "enabled": true,
+                "type": "apm_app_metric"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

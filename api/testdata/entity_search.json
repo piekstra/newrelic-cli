@@ -1,0 +1,36 @@
+{
+  "data": {
+    "actor": {
+      "entitySearch": {
+        "results": {
+          "entities": [
+            {
+              "guid": "MXxBUE18QVBQTElDQVRJT058MTIzNDU2Nzg=",
+              "name": "My Application",
+              "type": "APPLICATION",
+              "entityType": "APM_APPLICATION_ENTITY",
+              "domain": "APM",
+              "accountId": 12345,
+              "tags": [
+                {"key": "environment", "values": ["production"]},
+                {"key": "team", "values": ["platform"]}
+              ]
+            },
+            {
+              "guid": "MXxJTkZSQXxIT1NUfDk4NzY1NDMyMQ==",
+              "name": "web-server-01",
+              "type": "HOST",
+              "entityType": "INFRASTRUCTURE_HOST_ENTITY",
+              "domain": "INFRA",
+              "accountId": 12345,
+              "tags": [
+                {"key": "environment", "values": ["production"]},
+                {"key": "role", "values": ["web"]}
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

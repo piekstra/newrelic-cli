@@ -1,0 +1,42 @@
+{
+  "data": {
+    "actor": {
+      "account": {
+        "logConfigurations": {
+          "parsingRules": [
+            {
+              "id": "rule-001",
+              "description": "Parse Apache access logs",
+              "enabled": true,
+              "deleted": false,
+              "grok": "%{COMBINEDAPACHELOG}",
+              "lucene": "filePath:/var/log/apache/*",
+              "nrql": "SELECT * FROM Log WHERE filePath LIKE '/var/log/apache%'",
+              "updatedAt": "2024-01-10T12:00:00Z"
+            },
+            {
+              "id": "rule-002",
+              "description": "Parse JSON application logs",
+              "enabled": true,
+              "deleted": false,
+              "grok": "%{GREEDYDATA:message}",
+              "lucene": "application:myapp",
+              "nrql": "SELECT * FROM Log WHERE application = 'myapp'",
+              "updatedAt": "2024-01-12T15:30:00Z"
+            },
+            {
+              "id": "rule-003",
+              "description": "Old deleted rule",
+              "enabled": false,
+              "deleted": true,
+              "grok": "%{GREEDYDATA}",
+              "lucene": "",
+              "nrql": "",
+              "updatedAt": "2024-01-01T00:00:00Z"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

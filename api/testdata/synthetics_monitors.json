@@ -1,0 +1,27 @@
+{
+  "monitors": [
+    {
+      "id": "syn-001",
+      "name": "Homepage Check",
+      "type": "SIMPLE",
+      "frequency": 5,
+      "status": "ENABLED",
+      "uri": "https://example.com"
+    },
+    {
+      "id": "syn-002",
+      "name": "API Health Check",
+      "type": "SIMPLE",
+      "frequency": 1,
+      "status": "ENABLED",
+      "uri": "https://api.example.com/health"
+    },
+    {
+      "id": "syn-003",
+      "name": "Login Flow",
+      "type": "SCRIPT_BROWSER",
+      "frequency": 15,
+      "status": "DISABLED"
+    }
+  ]
+}
