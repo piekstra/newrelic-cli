@@ -102,6 +102,9 @@ func isNumeric(s string) bool {
 	return true
 }
 
+// base64Chars contains all valid base64 characters
+const base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+
 // looksLikeGUID checks if a string could be a base64-encoded GUID
 func looksLikeGUID(s string) bool {
 	// GUIDs are typically 40+ characters and contain only base64 characters
@@ -110,8 +113,7 @@ func looksLikeGUID(s string) bool {
 	}
 
 	for _, c := range s {
-		if !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') ||
-			(c >= '0' && c <= '9') || c == '+' || c == '/' || c == '=') {
+		if !strings.ContainsRune(base64Chars, c) {
 			return false
 		}
 	}
