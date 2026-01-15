@@ -28,6 +28,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # TAP_GITHUB_TOKEN (a PAT) is required to push to the piekstra/homebrew-tap
+      # repository. The default GITHUB_TOKEN only has access to this repository.
       - name: Update Homebrew Tap
         env:
           TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
