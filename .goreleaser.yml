@@ -10,6 +10,7 @@ builds:
     goos:
       - darwin
       - linux
+      - windows
     goarch:
       - amd64
       - arm64
@@ -20,8 +21,13 @@ builds:
       - -X github.com/piekstra/newrelic-cli/internal/version.BuildDate={{.Date}}
 
 archives:
-  - format: tar.gz
+  - formats:
+      - tar.gz
     name_template: "{{ .ProjectName }}_v{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
 
 checksum:
   name_template: checksums.txt
