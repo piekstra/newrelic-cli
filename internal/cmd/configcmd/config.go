@@ -7,11 +7,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/piekstra/newrelic-cli/internal/cmd/root"
-	"github.com/piekstra/newrelic-cli/internal/config"
-	"github.com/piekstra/newrelic-cli/internal/confirm"
-	"github.com/piekstra/newrelic-cli/internal/validate"
-	"github.com/piekstra/newrelic-cli/internal/view"
+	"github.com/open-cli-collective/newrelic-cli/internal/cmd/root"
+	"github.com/open-cli-collective/newrelic-cli/internal/config"
+	"github.com/open-cli-collective/newrelic-cli/internal/confirm"
+	"github.com/open-cli-collective/newrelic-cli/internal/validate"
+	"github.com/open-cli-collective/newrelic-cli/internal/view"
 )
 
 // Register adds the config commands to the root command

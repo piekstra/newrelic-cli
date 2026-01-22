@@ -3,7 +3,7 @@ package nrql
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/piekstra/newrelic-cli/internal/cmd/root"
+	"github.com/open-cli-collective/newrelic-cli/internal/cmd/root"
 )
 
 // Register adds the nrql commands to the root command

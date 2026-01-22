@@ -14,7 +14,7 @@ Thank you for your interest in contributing to newrelic-cli! This guide will hel
 
 ```bash
 # Clone the repository
-git clone https://github.com/piekstra/newrelic-cli.git
+git clone https://github.com/open-cli-collective/newrelic-cli.git
 cd newrelic-cli
 
 # Build
@@ -196,7 +196,7 @@ package newcommand
 
 import (
     "github.com/spf13/cobra"
-    "github.com/piekstra/newrelic-cli/internal/cmd/root"
+    "github.com/open-cli-collective/newrelic-cli/internal/cmd/root"
 )
 
 func Register(rootCmd *cobra.Command, opts *root.Options) {
@@ -219,8 +219,8 @@ package newcommand
 
 import (
     "github.com/spf13/cobra"
-    "github.com/piekstra/newrelic-cli/api"
-    "github.com/piekstra/newrelic-cli/internal/cmd/root"
+    "github.com/open-cli-collective/newrelic-cli/api"
+    "github.com/open-cli-collective/newrelic-cli/internal/cmd/root"
 )
 
 func newListCmd(opts *root.Options) *cobra.Command {
@@ -264,7 +264,7 @@ func runList(opts *root.Options) error {
 ```go
 import (
     // ...
-    "github.com/piekstra/newrelic-cli/internal/cmd/newcommand"
+    "github.com/open-cli-collective/newrelic-cli/internal/cmd/newcommand"
 )
 
 func main() {

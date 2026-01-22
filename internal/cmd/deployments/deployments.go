@@ -6,9 +6,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/piekstra/newrelic-cli/api"
-	"github.com/piekstra/newrelic-cli/internal/cmd/root"
-	"github.com/piekstra/newrelic-cli/internal/view"
+	"github.com/open-cli-collective/newrelic-cli/api"
+	"github.com/open-cli-collective/newrelic-cli/internal/cmd/root"
+	"github.com/open-cli-collective/newrelic-cli/internal/view"
 )
 
 // Register adds the deployments commands to the root command
