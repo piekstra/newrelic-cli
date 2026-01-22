@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/piekstra/newrelic-cli/api"
+	"github.com/open-cli-collective/newrelic-cli/api"
 )
 
 // Region validates New Relic region (US or EU)

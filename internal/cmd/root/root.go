@@ -6,10 +6,10 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/piekstra/newrelic-cli/api"
-	"github.com/piekstra/newrelic-cli/internal/config"
-	"github.com/piekstra/newrelic-cli/internal/version"
-	"github.com/piekstra/newrelic-cli/internal/view"
+	"github.com/open-cli-collective/newrelic-cli/api"
+	"github.com/open-cli-collective/newrelic-cli/internal/config"
+	"github.com/open-cli-collective/newrelic-cli/internal/version"
+	"github.com/open-cli-collective/newrelic-cli/internal/view"
 )
 
 // RegisterFunc is a function that registers a command

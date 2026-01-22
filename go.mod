@@ -1,4 +1,4 @@
-module github.com/piekstra/newrelic-cli
+module github.com/open-cli-collective/newrelic-cli
 
 go 1.21
 

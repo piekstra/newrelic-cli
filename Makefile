@@ -5,9 +5,9 @@ VERSION?=dev
 COMMIT?=$(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_DATE?=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-LDFLAGS=-ldflags "-X github.com/piekstra/newrelic-cli/internal/version.Version=$(VERSION) \
-	-X github.com/piekstra/newrelic-cli/internal/version.Commit=$(COMMIT) \
-	-X github.com/piekstra/newrelic-cli/internal/version.BuildDate=$(BUILD_DATE)"
+LDFLAGS=-ldflags "-X github.com/open-cli-collective/newrelic-cli/internal/version.Version=$(VERSION) \
+	-X github.com/open-cli-collective/newrelic-cli/internal/version.Commit=$(COMMIT) \
+	-X github.com/open-cli-collective/newrelic-cli/internal/version.BuildDate=$(BUILD_DATE)"
 
 build:
 	go build $(LDFLAGS) -o $(BINARY_NAME) ./cmd/newrelic-cli

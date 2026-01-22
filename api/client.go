@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/piekstra/newrelic-cli/internal/config"
+	"github.com/open-cli-collective/newrelic-cli/internal/config"
 )
 
 // Region represents a New Relic region

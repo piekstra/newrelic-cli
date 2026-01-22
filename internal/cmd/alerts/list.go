@@ -5,8 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/piekstra/newrelic-cli/internal/cmd/root"
-	"github.com/piekstra/newrelic-cli/internal/view"
+	"github.com/open-cli-collective/newrelic-cli/internal/cmd/root"
+	"github.com/open-cli-collective/newrelic-cli/internal/view"
 )
 
 func newListPoliciesCmd(opts *root.Options) *cobra.Command {
