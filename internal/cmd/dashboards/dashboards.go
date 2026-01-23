@@ -1,7 +1,9 @@
 package dashboards
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -21,6 +23,8 @@ func Register(rootCmd *cobra.Command, opts *root.Options) {
 
 	dashboardsCmd.AddCommand(newListCmd(opts))
 	dashboardsCmd.AddCommand(newGetCmd(opts))
+	dashboardsCmd.AddCommand(newCreateCmd(opts))
+	dashboardsCmd.AddCommand(newUpdateCmd(opts))
 	dashboardsCmd.AddCommand(newDeleteCmd(opts))
 
 	rootCmd.AddCommand(dashboardsCmd)
@@ -120,6 +124,186 @@ func runGet(opts *root.Options, guid api.EntityGUID) error {
 		for _, page := range dashboard.Pages {
 			v.Print("  - %s (%d widgets)\n", page.Name, len(page.Widgets))
 		}
+		return nil
+	}
+}
+
+// createOptions holds options for the create command
+type createOptions struct {
+	*root.Options
+	fromFile string
+}
+
+func newCreateCmd(opts *root.Options) *cobra.Command {
+	createOpts := &createOptions{Options: opts}
+
+	cmd := &cobra.Command{
+		Use:   "create",
+		Short: "Create a new dashboard from a JSON file",
+		Long: `Create a new dashboard from a JSON file.
+
+The JSON file should contain the dashboard definition with the following structure:
+{
+  "name": "Dashboard Name",
+  "description": "Optional description",
+  "permissions": "PUBLIC_READ_WRITE",
+  "pages": [
+    {
+      "name": "Page 1",
+      "widgets": [
+        {
+          "title": "Widget Title",
+          "visualization": {"id": "viz.line"},
+          "layout": {"column": 1, "row": 1, "width": 4, "height": 3},
+          "rawConfiguration": {
+            "nrqlQueries": [{"accountId": 123, "query": "SELECT count(*) FROM Transaction"}]
+          }
+        }
+      ]
+    }
+  ]
+}
+
+Permissions: PUBLIC_READ_WRITE, PUBLIC_READ_ONLY, PRIVATE`,
+		Example: `  # Create a dashboard from a JSON file
+  newrelic-cli dashboards create --from-file dashboard.json
+
+  # Create and output result as JSON
+  newrelic-cli dashboards create --from-file dashboard.json -o json`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runCreate(createOpts)
+		},
+	}
+
+	cmd.Flags().StringVarP(&createOpts.fromFile, "from-file", "f", "", "Path to JSON file containing dashboard definition (required)")
+	_ = cmd.MarkFlagRequired("from-file")
+
+	return cmd
+}
+
+func runCreate(opts *createOptions) error {
+	v := opts.View()
+
+	// Read and parse the JSON file
+	data, err := os.ReadFile(opts.fromFile)
+	if err != nil {
+		return fmt.Errorf("failed to read file: %w", err)
+	}
+
+	var input api.DashboardInput
+	if err := json.Unmarshal(data, &input); err != nil {
+		return fmt.Errorf("failed to parse JSON: %w", err)
+	}
+
+	// Validate required fields
+	if input.Name == "" {
+		return fmt.Errorf("dashboard name is required")
+	}
+	if len(input.Pages) == 0 {
+		return fmt.Errorf("at least one page is required")
+	}
+
+	client, err := opts.APIClient()
+	if err != nil {
+		return err
+	}
+
+	dashboard, err := client.CreateDashboard(&input)
+	if err != nil {
+		return fmt.Errorf("failed to create dashboard: %w", err)
+	}
+
+	switch v.Format {
+	case "json":
+		return v.JSON(dashboard)
+	case "plain":
+		rows := [][]string{
+			{dashboard.GUID.String(), dashboard.Name},
+		}
+		return v.Plain(rows)
+	default:
+		v.Success("Dashboard \"%s\" created", dashboard.Name)
+		v.Print("GUID: %s\n", dashboard.GUID.String())
+		return nil
+	}
+}
+
+// updateOptions holds options for the update command
+type updateOptions struct {
+	*root.Options
+	fromFile string
+}
+
+func newUpdateCmd(opts *root.Options) *cobra.Command {
+	updateOpts := &updateOptions{Options: opts}
+
+	cmd := &cobra.Command{
+		Use:   "update <guid>",
+		Short: "Update an existing dashboard from a JSON file",
+		Long: `Update an existing dashboard from a JSON file.
+
+The JSON file format is the same as for 'dashboards create'.
+The GUID identifies which dashboard to update.`,
+		Example: `  # Update a dashboard from a JSON file
+  newrelic-cli dashboards update "MjcxMjY0MHxWSVp8REFTSEJPQVJEXDI5Mjg=" --from-file dashboard.json
+
+  # Update and output result as JSON
+  newrelic-cli dashboards update "MjcxMjY0MHxWSVp8REFTSEJPQVJEXDI5Mjg=" --from-file dashboard.json -o json`,
+		Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runUpdate(updateOpts, api.EntityGUID(args[0]))
+		},
+	}
+
+	cmd.Flags().StringVarP(&updateOpts.fromFile, "from-file", "f", "", "Path to JSON file containing dashboard definition (required)")
+	_ = cmd.MarkFlagRequired("from-file")
+
+	return cmd
+}
+
+func runUpdate(opts *updateOptions, guid api.EntityGUID) error {
+	v := opts.View()
+
+	// Read and parse the JSON file
+	data, err := os.ReadFile(opts.fromFile)
+	if err != nil {
+		return fmt.Errorf("failed to read file: %w", err)
+	}
+
+	var input api.DashboardInput
+	if err := json.Unmarshal(data, &input); err != nil {
+		return fmt.Errorf("failed to parse JSON: %w", err)
+	}
+
+	// Validate required fields
+	if input.Name == "" {
+		return fmt.Errorf("dashboard name is required")
+	}
+	if len(input.Pages) == 0 {
+		return fmt.Errorf("at least one page is required")
+	}
+
+	client, err := opts.APIClient()
+	if err != nil {
+		return err
+	}
+
+	dashboard, err := client.UpdateDashboard(guid, &input)
+	if err != nil {
+		return fmt.Errorf("failed to update dashboard: %w", err)
+	}
+
+	switch v.Format {
+	case "json":
+		return v.JSON(dashboard)
+	case "plain":
+		rows := [][]string{
+			{dashboard.GUID.String(), dashboard.Name},
+		}
+		return v.Plain(rows)
+	default:
+		v.Success("Dashboard \"%s\" updated", dashboard.Name)
+		v.Print("GUID: %s\n", dashboard.GUID.String())
 		return nil
 	}
 }
