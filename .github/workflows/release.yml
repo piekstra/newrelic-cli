@@ -39,11 +39,13 @@ jobs:
 
           DARWIN_ARM64_SHA=$(grep "_darwin_arm64.tar.gz" dist/checksums.txt | cut -d' ' -f1)
           DARWIN_AMD64_SHA=$(grep "_darwin_amd64.tar.gz" dist/checksums.txt | cut -d' ' -f1)
+          LINUX_ARM64_SHA=$(grep "_linux_arm64.tar.gz" dist/checksums.txt | cut -d' ' -f1)
+          LINUX_AMD64_SHA=$(grep "_linux_amd64.tar.gz" dist/checksums.txt | cut -d' ' -f1)
 
           git clone https://x-access-token:${TAP_GITHUB_TOKEN}@github.com/open-cli-collective/homebrew-tap.git
           cd homebrew-tap
 
-          mkdir -p Formula
+          mkdir -p Formula Casks
 
           cat > Formula/newrelic-cli.rb << 'FORMULAEOF'
           class NewrelicCli < Formula
@@ -89,6 +91,62 @@ jobs:
           sed -i "s/VERSION_PLACEHOLDER/${VERSION_NUM}/g" Formula/newrelic-cli.rb
           sed -i "s/DARWIN_ARM64_PLACEHOLDER/${DARWIN_ARM64_SHA}/g" Formula/newrelic-cli.rb
           sed -i "s/DARWIN_AMD64_PLACEHOLDER/${DARWIN_AMD64_SHA}/g" Formula/newrelic-cli.rb
+
+          # Also update the nrq cask (alias for users who install via `brew install nrq`)
+          cat > Casks/nrq.rb << 'CASKEOF'
+          cask "nrq" do
+            name "nrq"
+            desc "Command-line interface for New Relic"
+            homepage "https://github.com/open-cli-collective/newrelic-cli"
+            version "VERSION_PLACEHOLDER"
+
+            binary "nrq"
+
+            on_macos do
+              on_arm do
+                url "https://github.com/open-cli-collective/newrelic-cli/releases/download/v#{version}/nrq_v#{version}_darwin_arm64.tar.gz"
+                sha256 "DARWIN_ARM64_PLACEHOLDER"
+              end
+              on_intel do
+                url "https://github.com/open-cli-collective/newrelic-cli/releases/download/v#{version}/nrq_v#{version}_darwin_amd64.tar.gz"
+                sha256 "DARWIN_AMD64_PLACEHOLDER"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "https://github.com/open-cli-collective/newrelic-cli/releases/download/v#{version}/nrq_v#{version}_linux_arm64.tar.gz"
+                sha256 "LINUX_ARM64_PLACEHOLDER"
+              end
+              on_intel do
+                url "https://github.com/open-cli-collective/newrelic-cli/releases/download/v#{version}/nrq_v#{version}_linux_amd64.tar.gz"
+                sha256 "LINUX_AMD64_PLACEHOLDER"
+              end
+            end
+
+            postflight do
+              system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{staged_path}/nrq"]
+            end
+
+            caveats <<~EOS
+              nrq has been installed.
+
+              To configure, run:
+                nrq config set-api-key
+                nrq config set-account-id
+
+              Or set environment variables:
+                export NEWRELIC_API_KEY=NRAK-xxx
+                export NEWRELIC_ACCOUNT_ID=123456
+            EOS
+          end
+          CASKEOF
+
+          sed -i "s/VERSION_PLACEHOLDER/${VERSION_NUM}/g" Casks/nrq.rb
+          sed -i "s/DARWIN_ARM64_PLACEHOLDER/${DARWIN_ARM64_SHA}/g" Casks/nrq.rb
+          sed -i "s/DARWIN_AMD64_PLACEHOLDER/${DARWIN_AMD64_SHA}/g" Casks/nrq.rb
+          sed -i "s/LINUX_ARM64_PLACEHOLDER/${LINUX_ARM64_SHA}/g" Casks/nrq.rb
+          sed -i "s/LINUX_AMD64_PLACEHOLDER/${LINUX_AMD64_SHA}/g" Casks/nrq.rb
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
