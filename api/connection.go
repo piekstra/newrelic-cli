@@ -4,16 +4,16 @@ import "fmt"
 
 // ConnectionTestResult holds the result of a connection test
 type ConnectionTestResult struct {
-	APIKeyValid    bool
-	AccountAccess  bool
-	AccountID      int
-	AccountName    string
-	UserID         string
-	UserEmail      string
-	Region         string
-	NerdGraphURL   string
-	Error          error
-	ErrorMessage   string
+	APIKeyValid   bool
+	AccountAccess bool
+	AccountID     int
+	AccountName   string
+	UserID        string
+	UserEmail     string
+	Region        string
+	NerdGraphURL  string
+	Error         error
+	ErrorMessage  string
 }
 
 // TestConnection verifies the API key and optionally account access

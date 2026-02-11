@@ -1,0 +1,12 @@
+{
+	"data": {
+		"apiAccessDeleteKeys": {
+			"deletedKeys": [
+				{
+					"id": "NRAK-ABCDEF1234567890"
+				}
+			],
+			"errors": []
+		}
+	}
+}

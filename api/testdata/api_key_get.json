@@ -1,0 +1,15 @@
+{
+	"data": {
+		"actor": {
+			"apiAccess": {
+				"key": {
+					"id": "NRAK-ABCDEF1234567890",
+					"name": "My User Key",
+					"notes": "For automation",
+					"type": "USER",
+					"key": "NRAK-ABCDEF1234567890ABCDEF1234567890"
+				}
+			}
+		}
+	}
+}
