@@ -1,0 +1,35 @@
+{
+	"data": {
+		"actor": {
+			"apiAccess": {
+				"keySearch": {
+					"keys": [
+						{
+							"id": "NRAK-ABCDEF1234567890",
+							"name": "My User Key",
+							"notes": "For automation",
+							"type": "USER",
+							"key": ""
+						},
+						{
+							"id": "NRII-ABCDEF1234567890",
+							"name": "My License Key",
+							"notes": "Production license",
+							"type": "INGEST",
+							"key": "",
+							"ingestType": "LICENSE"
+						},
+						{
+							"id": "NRII-BROWSER1234567890",
+							"name": "My Browser Key",
+							"notes": "",
+							"type": "INGEST",
+							"key": "",
+							"ingestType": "BROWSER"
+						}
+					]
+				}
+			}
+		}
+	}
+}

@@ -343,6 +343,23 @@ type LogParsingRule struct {
 	UpdatedAt   string `json:"updatedAt"`
 }
 
+// ApiAccessKey represents a New Relic API access key (user or ingest)
+type ApiAccessKey struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Notes      string `json:"notes,omitempty"`
+	Type       string `json:"type"`
+	Key        string `json:"key,omitempty"`
+	IngestType string `json:"ingestType,omitempty"`
+}
+
+// ApiAccessKeyUpdate contains the fields that can be updated on an API key.
+// All fields are optional - only non-nil values will be included in the update.
+type ApiAccessKeyUpdate struct {
+	Name  *string
+	Notes *string
+}
+
 // NerdGraphRequest represents a GraphQL request
 type NerdGraphRequest struct {
 	Query     string                 `json:"query"`
